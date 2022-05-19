@@ -1,10 +1,8 @@
 #!/bin/bash
-echo "File Name is $0"
-echo "First Parameter is $1"
-echo "Second Parameter is $2"
-echo "Third Parameter is $3"
-echo "Fourth Parameter is $4"
-echo "All the Parameters are $@"
-echo "Total Number of Parameters : $#"
-echo "$RANDOM is a random number"
-echo "The current line number is $LINENO"
+echo ${DISTROS[0]} "ubuntu"
+echo ${DISTROS[1]} "fedora"
+echo ${DISTROS[2]} "debian"
+echo ${DISTROS[3]} "centos"
+echo ${DISTROS[4]} "alpine"
+echo ${DISTROS[@]}
+echo ${#DISTROS[@]}

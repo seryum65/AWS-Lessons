@@ -1,24 +1,9 @@
-#!/bin/bash
-read -p "Input first number: " first_number
-read -p "Input second number: " second_number
+number=10
+let new_number=number++   # This firstly assigns the number then increases.
+echo "Number = $number"
+echo "New number = $new_number"
 
-sum=$(($first_number + $second_number)) 
-sub=$(($first_number - $second_number)) 
-mul=$(($first_number * $second_number)) 
-div=$(($first_number / $second_number)) 
-
-
-echo "SUM=$sum"
-echo "SUB=$sub"
-echo "MUL=$mul"
-echo "DIV=$div"
-
-(( first_number++ ))
-(( second_number-- ))
-increment_num=$((first_number++ ))
-decrement_num=$((second_number-- ))
-
-echo "The increment of first number is $first_number"
-echo "The decrement of second number is $second_number"
-echo "increment_num=$increment_num"
-echo "decrement_num=$decrement_num"
+number=10
+let new_number=--number   # This firstly decreases the number then assigns.
+echo "Number = $number"
+echo "New number = $new_number"
