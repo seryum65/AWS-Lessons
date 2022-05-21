@@ -117,7 +117,7 @@ done
 
 echo "Files in current folder:"
 
-for file in `pwd`/*
+for file in `pwd`/* # $(pwd) same `pwd`
 do
    echo $file
 done
@@ -139,7 +139,7 @@ chmod +x for-loop.sh
 
 devops_tools=("docker" "kubernetes" "ansible" "terraform" "jenkins")
 
-for tool in ${devops_tools[@]}
+for tool in ${devops_tools[@]} # @ all list get
 do
    echo $tool
 done
