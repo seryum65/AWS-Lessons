@@ -1,7 +1,8 @@
 #! /bin/bash
 back_up() {
-   tar cvzf "backup$(date +%Y-%m-%d).tar.gz" $1
+   NOW=$(date '+%Y-%m-%d %H-%M-%S')
+   tar cvzf "backup.$NOW.tar.gz" $1
    echo "Backup was created from $1" 
 }
 
-back_up test_folder
+back_up /var/log/cloud-init.log
