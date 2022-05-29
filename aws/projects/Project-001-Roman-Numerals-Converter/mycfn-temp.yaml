@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  This template aims to convert the given number to the Roman numerals. 
+Parameters:
+
+  MyVPC:
+    Description: Please select your vpc. 
+    Type: AWS::EC2::VPC::Id
+    
+  MySubnet:
+    Description: Please select at least two subnets.
+    Type: List<AWS::EC2::Subnet::Id>
+ 
+  MyKeyPairs:
+    Description: Please select your key pair.
+    Type: AWS::EC2::KeyPair::KeyName
+    
+  MyInstanceType:
+    Description: Please select your instance type. 
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.nano
+      - t3.micro
+      - t3.nano
+Mappings:
+  MyMaps:
+    us-east-1:
+      AMI: ami-0022f774911c1d690
+    us-east-2:
+      AMI: ami-0233c2d874b811deb
+    us-west-1:
+      AMI: ami-0ed05376b59b90e46
+    us-west-2:
+      AMI: ami-0dc8f589abe99f538
+    eu-west-1:
+      AMI: ami-058b1b7fe545997ae
+Resources:
+  myElasticLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      SecurityGroups:
+        - !GetAtt MySecurityGroup.GroupId
+      Subnets: !Ref MySubnet
+      Type: application
+        
+  mylistener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions: # Required
+        - Type: forward
+          TargetGroupArn: !Ref MyTargetGroup
+      LoadBalancerArn: !Ref  myElasticLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  myAutoScaling:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones: !GetAZs 
+      DesiredCapacity: "3"
+      HealthCheckGracePeriod: 90
+      HealthCheckType: ELB
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLunchTemplate
+        Version: "1"
+      MaxSize: "4" # Required
+      MinSize: "1" # Required
+      TargetGroupARNs:
+        - !Ref MyTargetGroup
+
+  MyLunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !FindInMap 
+          - MyMaps
+          - !Ref AWS::Region
+          - AMI
+        InstanceType: !Ref MyInstanceType
+        KeyName: !Ref MyKeyPairs
+        SecurityGroupIds:
+          - !GetAtt  MySecurityGroup.GroupId
+
+        UserData: !Base64 |
+          #! /bin/bash
+          yum update -y
+          yum install python3 -y
+          pip3 install flask
+          cd /home/ec2-user
+          FOLDER="https://raw.githubusercontent.com/seryum65/AWS-Lessons/master/aws/projects/Project-001-Roman-Numerals-Converter"
+          wget "${FOLDER}"/app.py
+          mkdir templates && cd templates
+          wget "${FOLDER}"/templates/index.html
+          wget "${FOLDER}"/templates/result.html
+          cd ..
+          python3 app.py
+  
+  MyScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref myAutoScaling # Required
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 50.0
+  
+  MyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 3
+      VpcId: !Ref MyVPC
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enables SSH and HTTP # Required
+      GroupName: mycfn-temp-sec-group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref MyVPC   
+Outputs:
+  MyWebsiteURL:
+    Description: URL of the ALB
+    Value: !Join 
+      - ''
+      - - 'http://' 
+        - !GetAtt myElasticLoadBalancer.DNSName

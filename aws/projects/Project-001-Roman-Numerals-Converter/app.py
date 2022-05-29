@@ -1,30 +1,53 @@
-from flask import Flask, render_template, request
 
-app = Flask(__name__)
+def intToRoman(num):
+  
+    # Storing roman values of digits from 0-9
+    # when placed at different places
+    m = ["", "M", "MM", "MMM"]
+    c = ["", "C", "CC", "CCC", "CD", "D",
+         "DC", "DCC", "DCCC", "CM"]
+    x = ["", "X", "XX", "XXX", "XL", "L",
+         "LX", "LXX", "LXXX", "XC"]
+    i = ["", "I", "II", "III", "IV", "V",
+         "VI", "VII", "VIII", "IX"]
+  
+    # Converting to roman
+    thousands = m[num // 1000]
+    hundreds = c[(num % 1000) // 100]
+    tens = x[(num % 100) // 10]
+    ones = i[num % 10]
+  
+    ans = (thousands + hundreds +
+           tens + ones)
+  
+    return ans
+  
+# Driver code
+#  if __name__ == "__main__":
+#     print("This program converts decimal numbers to Roman Numerals (To exit the program, please type 'exit')")
+while True:
+    
+    print("\nThis program converts decimal numbers to Roman Numerals (To exit the program, please type 'exit')")
+    number = (input("Please enter a number between 1 and 3999, inclusively :"))
+    if number.isdecimal() == False:
+        if number.lower() == "exit":
+            print("\nExiting the program... Good Bye")
+            break
+        
+        else:
+            print("\nNot Valid Input !!!")
+            isdigit = True
+            continue
+    number = int(number)
+    try:
 
-def convert(decimal_num):
-    roman = {1000:'M', 900:'CM', 500:'D', 400:'CD', 100:'C', 90:'XC', 50:'L', 40:'XL', 10:'X', 9:'IX', 5:'V', 4:'IV', 1:'I'}
-    num_to_roman = ''
+        if number<1 or number>3999:
+            print("\nNot Valid Input !!!")
+            isdigit = False
+        else:
+            isdigit = True
 
-    for i in roman.keys():
-        num_to_roman += roman[i]*(decimal_num//i) 
-        decimal_num %= i
-    return num_to_roman
-
-
-@app.route('/', methods=['POST', 'GET'])
-def main_post():
-    if request.method == 'POST':
-        alpha = request.form['number']
-        if not alpha.isdecimal():
-            return render_template('index.html', developer_name='Serdar', not_valid=True)
-        number = int(alpha)
-        if not 0 < number < 4000:
-            return render_template('index.html', developer_name='Serdar', not_valid=True)
-        return render_template('result.html', number_decimal = number , number_roman= convert(number), developer_name='Serdar')
-    else:
-        return render_template('index.html', developer_name='Serdar', not_valid=False)
-
-if __name__ == '__main__':
-    # app.run(debug=True)
-    app.run(host='0.0.0.0', port=80)
+       
+        print(f'\nRoman numerals representation of decimal number {number} = {intToRoman(number)}')
+    except IndexError:
+        print("")
