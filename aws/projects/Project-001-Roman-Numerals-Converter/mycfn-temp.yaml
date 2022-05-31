@@ -82,7 +82,7 @@ Resources:
         KeyName: !Ref MyKeyPairs
         SecurityGroupIds:
           - !GetAtt  MySecurityGroup.GroupId
-
+    
         UserData: !Base64 |
           #! /bin/bash
           yum update -y
