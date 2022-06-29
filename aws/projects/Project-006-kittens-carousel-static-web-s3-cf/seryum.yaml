@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  Kittens Carousel is a static website application deployed on AWS Simple Storage Service (S3), served through Cloudfront and Route 53 using AWS Cloudformation Service.
+Parameters:
+  DNSHostedZone:
+    Description: The DNS name of an existing Amazon Route 53 hosted zone e.g. clarusway.us
+    Type: AWS::Route53::HostedZone::Id
+
+  FullDomainName:
+    Description: The full domain name e.g. kittens.clarusway.us for the web application
+    Type: String
+    AllowedPattern: (?!-)[a-zA-Z0-9-.]{1,63}(?<!-)
+  
+Resources:
+  WebS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Ref FullDomainName
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        
+  WebS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebS3Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Action: s3:GetObject
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref WebS3Bucket
+                - /*
+            Principal: '*'
+  WebCloudFront:
+    Type: "AWS::CloudFront::Distribution"
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Ref FullDomainName
+        DefaultCacheBehavior:
+          AllowedMethods:  
+          - GET
+          - HEAD
+          Compress: true
+          ForwardedValues: 
+            QueryString: true 
+            Cookies:
+              Forward: none
+          TargetOriginId: Seryum
+          ViewerProtocolPolicy: allow-all  
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: 'http2'
+        IPV6Enabled: false
+        Origins:
+        - DomainName: !Join ['', [!Ref WebS3Bucket, '.s3-website-us-east-1.amazonaws.com']]
+          Id: Seryum
+          CustomOriginConfig: 
+            OriginProtocolPolicy: http-only 
+        PriceClass: PriceClass_All
+        ViewerCertificate:  
+          AcmCertificateArn: !Ref WebCertificate
+          SslSupportMethod: sni-only 
+  
+  WebCertificate:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      CertificateTransparencyLoggingPreference: ENABLED 
+      DomainName: !Ref FullDomainName # Required
+      DomainValidationOptions:
+        - DomainName: !Ref FullDomainName
+          HostedZoneId: !Ref DNSHostedZone   
+      ValidationMethod: DNS
+
+  WebDNSName:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref DNSHostedZone
+      RecordSets: 
+        - Name: !Ref FullDomainName
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 
+            DNSName: !GetAtt WebCloudFront.DomainName 
+
+
+
+Outputs:
+  FullDomainName:
+    Description: Full Domain Name of my Application
+    Value: !Ref FullDomainName
+  CloudfrontEndpoint:
+    Description: Endpoint for Kittens Cloudfront
+    Value: !GetAtt WebCloudFront.DomainName
+  BucketName: 
+    Description: S3 Bucket URL for Kittens Website
+    Value: !GetAtt WebS3Bucket.WebsiteURL
