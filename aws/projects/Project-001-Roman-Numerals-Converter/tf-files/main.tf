@@ -19,7 +19,7 @@ data "aws_ami" "amazon-linux-2" {
 }
 
 resource "aws_launch_template" "asg-lt" {
-    name = "Roman-Numerals-Converter"
+    name = "roman-numerals-converter"
     image_id = data.aws_ami.amazon-linux-2.id
     instance_type = "t2.micro"
     key_name = "firstkey"
@@ -35,7 +35,7 @@ resource "aws_launch_template" "asg-lt" {
 }
 
 resource "aws_alb_target_group" "app-lb-tg" {
-  name = "Roman-Numerals-Converter-lb-tg"
+  name = "roman-numerals-converter-lb-tg"
   port = 80
   protocol = "HTTP"
   vpc_id = data.aws_vpc.selected.id
@@ -47,7 +47,7 @@ resource "aws_alb_target_group" "app-lb-tg" {
 
 }
 resource "aws_alb" "app-lb" {
-    name = "Roman-Numerals-Converter-lb-tf"
+    name = "roman-numerals-converter-lb-tf"
     ip_address_type = "ipv4"
     internal = false
     load_balancer_type = "application"
@@ -68,7 +68,7 @@ resource "aws_alb_listener" "app-listener" {
 }
 
 resource "aws_autoscaling_group" "app-asg" {
-  name = "Roman-Numerals-Converter-asg"
+  name = "roman-numerals-converter-asg"
   max_size = 3
   min_size = 1
   desired_capacity = 2
